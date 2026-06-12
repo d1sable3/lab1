@@ -1,0 +1,184 @@
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+
+using namespace std;
+
+class Vector2D
+{
+private:
+    double x;
+    double y;
+
+public:
+    // Конструктор за замовчуванням
+    Vector2D()
+    {
+        x = 0.0;
+        y = 0.0;
+    }
+
+    // Ініціалізуючий конструктор
+    Vector2D(double px, double py)
+    {
+        x = px;
+        y = py;
+    }
+
+    // Копіюючий конструктор
+    Vector2D(const Vector2D& v)
+    {
+        x = v.x;
+        y = v.y;
+    }
+
+    // operator= — присвоювання
+    Vector2D& operator=(const Vector2D& v)
+    {
+        if (this == &v) return *this;
+        x = v.x;
+        y = v.y;
+        return *this;
+    }
+
+    // operator[] — доступ: 0=x, 1=y
+    double operator[](int i) const
+    {
+        if (i == 0) return x;
+        if (i == 1) return y;
+        abort();
+    }
+
+    // operator() — довжина (модуль) вектора
+    double operator()() const
+    {
+        return sqrt(x * x + y * y);
+    }
+
+    // operator double — перетворення типу: модуль вектора
+    operator double() const
+    {
+        return sqrt(x * x + y * y);
+    }
+
+    // operator== та operator!=
+    bool operator==(const Vector2D& v) const
+    {
+        return x == v.x && y == v.y;
+    }
+
+    bool operator!=(const Vector2D& v) const
+    {
+        return !(*this == v);
+    }
+
+    // operator+ — додавання векторів
+    Vector2D operator+(const Vector2D& v) const
+    {
+        return Vector2D(x + v.x, y + v.y);
+    }
+
+    // operator- — віднімання векторів
+    Vector2D operator-(const Vector2D& v) const
+    {
+        return Vector2D(x - v.x, y - v.y);
+    }
+
+    // operator* — множення вектора на число (вектор * число)
+    Vector2D operator*(double k) const
+    {
+        return Vector2D(x * k, y * k);
+    }
+
+    // operator* — скалярний добуток двох векторів
+    double operator*(const Vector2D& v) const
+    {
+        return x * v.x + y * v.y;
+    }
+
+    // operator<< — виведення на консоль
+    friend ostream& operator<<(ostream& out, const Vector2D& v)
+    {
+        out << "(" << v.x << ", " << v.y << ")";
+        return out;
+    }
+
+    // operator>> — введення з консолі
+    friend istream& operator>>(istream& in, Vector2D& v)
+    {
+        in >> v.x >> v.y;
+        return in;
+    }
+
+    // число * вектор (глобальна дружня функція)
+    friend Vector2D operator*(double k, const Vector2D& v)
+    {
+        return Vector2D(k * v.x, k * v.y);
+    }
+};
+
+int main()
+{
+    // Конструктор за замовчуванням
+    Vector2D v1;
+    cout << "v1 (default): " << v1 << endl;
+
+    // Ініціалізуючий конструктор
+    Vector2D v2(3.0, 4.0);
+    cout << "v2 (3, 4): " << v2 << endl;
+
+    // Копіюючий конструктор
+    Vector2D v3(v2);
+    cout << "v3 (copy of v2): " << v3 << endl;
+
+    // operator=
+    Vector2D v4;
+    v4 = v2;
+    cout << "v4 (assigned v2): " << v4 << endl;
+
+    // operator[]
+    cout << "\nv2[0] = x: " << v2[0] << endl;
+    cout << "v2[1] = y: " << v2[1] << endl;
+
+    // operator() — модуль
+    cout << "\nv2 length via (): " << v2() << endl;
+
+    // operator double — перетворення типу
+    double len = (double)v2;
+    cout << "v2 length via cast: " << len << endl;
+
+    // operator== та !=
+    cout << "\nv2 == v3: " << (v2 == v3 ? "true" : "false") << endl;
+    cout << "v1 == v2: " << (v1 == v2 ? "true" : "false") << endl;
+    cout << "v1 != v2: " << (v1 != v2 ? "true" : "false") << endl;
+
+    // operator+ — додавання
+    Vector2D v5(1.0, 2.0);
+    Vector2D v6 = v2 + v5;
+    cout << "\nv2 + v5: " << v6 << endl;
+
+    // operator- — віднімання
+    Vector2D v7 = v2 - v5;
+    cout << "v2 - v5: " << v7 << endl;
+
+    // operator* вектор на число
+    Vector2D v8 = v2 * 2.0;
+    cout << "v2 * 2.0: " << v8 << endl;
+
+    // число * вектор
+    Vector2D v9 = 3.0 * v2;
+    cout << "3.0 * v2: " << v9 << endl;
+
+    // скалярний добуток
+    double dot = v2 * v5;
+    cout << "\nv2 * v5 (dot): " << dot << endl;
+
+    // operator>>
+    cout << "\nEnter vector (x y): ";
+    Vector2D v10;
+    cin >> v10;
+    cout << "You entered: " << v10 << endl;
+    cout << "Its length: " << v10() << endl;
+
+    return 0;
+}
