@@ -1,0 +1,225 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+class Rectangle
+{
+private:
+    double x;       // координата x лівої нижньої вершини
+    double y;       // координата y лівої нижньої вершини
+    double length;  // довжина (по осі x)
+    double width;   // ширина (по осі y)
+
+public:
+    // Конструктор з параметрами
+    Rectangle(double x, double y, double length, double width);
+    // Конструктор за замовчуванням
+    Rectangle();
+    // Конструктор перетворення (квадрат зі стороною side)
+    Rectangle(double side);
+    // Копіювальний конструктор
+    Rectangle(const Rectangle& r);
+
+    // Функції доступу
+    double getX() const;
+    double getY() const;
+    double getLength() const;
+    double getWidth() const;
+
+    // Функції ініціалізації
+    void setX(double x);
+    void setY(double y);
+    void setLength(double length);
+    void setWidth(double width);
+
+    // Оригінальні функції
+    bool Equal(Rectangle r) const;
+    double Area() const;
+    double Perimeter() const;
+    bool ContainsPoint(double px, double py) const;
+
+    // Введення/виведення
+    void Print() const;
+    void Input();
+};
+
+// --- Реалізація конструкторів ---
+
+Rectangle::Rectangle(double p1, double p2, double p3, double p4)
+{
+    if (p3 <= 0 || p4 <= 0)
+    {
+        abort();
+    }
+    x = p1;
+    y = p2;
+    length = p3;
+    width = p4;
+}
+
+Rectangle::Rectangle()
+{
+    x = 0;
+    y = 0;
+    length = 1;
+    width = 1;
+}
+
+Rectangle::Rectangle(double side)
+{
+    if (side <= 0)
+    {
+        abort();
+    }
+    x = 0;
+    y = 0;
+    length = side;
+    width = side;
+}
+
+Rectangle::Rectangle(const Rectangle& r)
+{
+    x = r.x;
+    y = r.y;
+    length = r.length;
+    width = r.width;
+}
+
+// --- Функції доступу ---
+
+double Rectangle::getX() const
+{
+    return x;
+}
+
+double Rectangle::getY() const
+{
+    return y;
+}
+
+double Rectangle::getLength() const
+{
+    return length;
+}
+
+double Rectangle::getWidth() const
+{
+    return width;
+}
+
+// --- Функції ініціалізації ---
+
+void Rectangle::setX(double p)
+{
+    x = p;
+}
+
+void Rectangle::setY(double p)
+{
+    y = p;
+}
+
+void Rectangle::setLength(double p)
+{
+    if (p <= 0)
+        abort();
+    length = p;
+}
+
+void Rectangle::setWidth(double p)
+{
+    if (p <= 0)
+        abort();
+    width = p;
+}
+
+// --- Оригінальні функції ---
+
+bool Rectangle::Equal(Rectangle r) const
+{
+    return (length == r.length && width == r.width);
+}
+
+double Rectangle::Area() const
+{
+    return length * width;
+}
+
+double Rectangle::Perimeter() const
+{
+    return 2 * (length + width);
+}
+
+bool Rectangle::ContainsPoint(double px, double py) const
+{
+    return (px >= x && px <= x + length &&
+            py >= y && py <= y + width);
+}
+
+// --- Введення/виведення ---
+
+void Rectangle::Print() const
+{
+    cout << "Rectangle: left-bottom=(" << x << ", " << y << "), "
+         << "length=" << length << ", width=" << width << endl;
+}
+
+void Rectangle::Input()
+{
+    cout << "Enter x y length width: ";
+    cin >> x >> y >> length >> width;
+    if (length <= 0 || width <= 0)
+        abort();
+}
+
+// --- Функція main ---
+
+int main()
+{
+    // Демонстрація конструкторів
+    Rectangle r1(1.0, 2.0, 5.0, 3.0);
+    Rectangle r2;
+    Rectangle r3(4.0);
+    Rectangle r4(r1);
+
+    cout << "=== Constructors ===" << endl;
+    r1.Print();
+    r2.Print();
+    r3.Print();
+    r4.Print();
+
+    // Функції доступу
+    cout << "\n=== Getters ===" << endl;
+    cout << "r1: x=" << r1.getX() << " y=" << r1.getY()
+         << " length=" << r1.getLength() << " width=" << r1.getWidth() << endl;
+
+    // Функції ініціалізації
+    cout << "\n=== Setters ===" << endl;
+    r2.setX(3.0);
+    r2.setY(4.0);
+    r2.setLength(5.0);
+    r2.setWidth(3.0);
+    r2.Print();
+
+    // Area та Perimeter
+    cout << "\n=== Area & Perimeter ===" << endl;
+    cout << "r1 Area    = " << r1.Area() << endl;
+    cout << "r1 Perimeter = " << r1.Perimeter() << endl;
+    cout << "r3 Area    = " << r3.Area() << endl;
+    cout << "r3 Perimeter = " << r3.Perimeter() << endl;
+
+    // Equal
+    cout << "\n=== Equal ===" << endl;
+    cout << "r1 == r4: " << r1.Equal(r4) << endl;
+    cout << "r1 == r2: " << r1.Equal(r2) << endl;
+    cout << "r1 == r3: " << r1.Equal(r3) << endl;
+
+    // ContainsPoint
+    cout << "\n=== ContainsPoint ===" << endl;
+    cout << "r1 contains (3, 4): " << r1.ContainsPoint(3.0, 4.0) << endl;
+    cout << "r1 contains (1, 2): " << r1.ContainsPoint(1.0, 2.0) << endl;
+    cout << "r1 contains (0, 0): " << r1.ContainsPoint(0.0, 0.0) << endl;
+    cout << "r1 contains (6, 5): " << r1.ContainsPoint(6.0, 5.0) << endl;
+
+    return 0;
+}
