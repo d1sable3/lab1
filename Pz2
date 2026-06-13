@@ -1,184 +1,184 @@
 #include <iostream>
 #include <cmath>
-#include <cstdlib>
-
+#include <stdexcept>
+#include <string>
 using namespace std;
 
-class Vector2D
-{
+class Money {
 private:
-    double x;
-    double y;
-
+    double amount;      // розмір суми
+    string currency;    // код валюти (USD, EUR, UAH ...)
+    double rate;        // курс щодо долара (1 USD = rate одиниць валюти)
 public:
     // Конструктор за замовчуванням
-    Vector2D()
-    {
-        x = 0.0;
-        y = 0.0;
-    }
+    Money() : amount(0.0), currency("USD"), rate(1.0) {}
 
-    // Ініціалізуючий конструктор
-    Vector2D(double px, double py)
-    {
-        x = px;
-        y = py;
+    // Параметричний конструктор
+    Money(double a, const string& cur, double r) {
+        if (a < 0) throw invalid_argument("Amount cannot be negative");
+        if (r <= 0) throw invalid_argument("Rate must be positive");
+        amount = a; currency = cur; rate = r;
     }
 
     // Копіюючий конструктор
-    Vector2D(const Vector2D& v)
-    {
-        x = v.x;
-        y = v.y;
-    }
+    Money(const Money& m) : amount(m.amount), currency(m.currency), rate(m.rate) {}
 
-    // operator= — присвоювання
-    Vector2D& operator=(const Vector2D& v)
-    {
-        if (this == &v) return *this;
-        x = v.x;
-        y = v.y;
+    // Конструктор переміщення
+    Money(Money&& m) noexcept : amount(m.amount), currency(m.currency), rate(m.rate)
+    { m.amount = 0.0; }
+
+    // operator= копіюючий
+    Money& operator=(const Money& m) {
+        if (this == &m) return *this;
+        amount = m.amount; currency = m.currency; rate = m.rate;
         return *this;
     }
 
-    // operator[] — доступ: 0=x, 1=y
-    double operator[](int i) const
-    {
-        if (i == 0) return x;
-        if (i == 1) return y;
-        abort();
+    // operator= переміщуючий
+    Money& operator=(Money&& m) noexcept {
+        if (this == &m) return *this;
+        amount = m.amount; currency = m.currency; rate = m.rate;
+        m.amount = 0.0;
+        return *this;
     }
 
-    // operator() — довжина (модуль) вектора
-    double operator()() const
-    {
-        return sqrt(x * x + y * y);
+    // operator[] — 0: amount, 1: rate
+    double operator[](int i) const {
+        if (i == 0) return amount;
+        if (i == 1) return rate;
+        throw out_of_range("Index must be 0 or 1");
     }
 
-    // operator double — перетворення типу: модуль вектора
-    operator double() const
-    {
-        return sqrt(x * x + y * y);
+    // operator() — сума в доларах
+    double operator()() const {
+        return amount / rate;
     }
 
-    // operator== та operator!=
-    bool operator==(const Vector2D& v) const
-    {
-        return x == v.x && y == v.y;
+    // Перетворення типу до double — сума в доларах
+    operator double() const {
+        return amount / rate;
     }
 
-    bool operator!=(const Vector2D& v) const
-    {
-        return !(*this == v);
+    // operator== та !=  (порівнюємо суми в доларах)
+    bool operator==(const Money& m) const {
+        return fabs((double)*this - (double)m) < 1e-9;
+    }
+    bool operator!=(const Money& m) const {
+        return !(*this == m);
     }
 
-    // operator+ — додавання векторів
-    Vector2D operator+(const Vector2D& v) const
-    {
-        return Vector2D(x + v.x, y + v.y);
+    // operator< та > (за сумою в доларах)
+    bool operator<(const Money& m) const { return (double)*this < (double)m; }
+    bool operator>(const Money& m) const { return m < *this; }
+
+    // Додавання двох грошових сум (результат у валюті лівого операнда)
+    Money operator+(const Money& m) const {
+        double totalUSD = (double)*this + (double)m;
+        return Money(totalUSD * rate, currency, rate);
     }
 
-    // operator- — віднімання векторів
-    Vector2D operator-(const Vector2D& v) const
-    {
-        return Vector2D(x - v.x, y - v.y);
+    // Різниця двох грошових сум
+    Money operator-(const Money& m) const {
+        double diffUSD = (double)*this - (double)m;
+        if (diffUSD < 0) throw invalid_argument("Result would be negative");
+        return Money(diffUSD * rate, currency, rate);
     }
 
-    // operator* — множення вектора на число (вектор * число)
-    Vector2D operator*(double k) const
-    {
-        return Vector2D(x * k, y * k);
+    // Додавання числа до суми
+    Money operator+(double val) const {
+        if (amount + val < 0) throw invalid_argument("Result would be negative");
+        return Money(amount + val, currency, rate);
     }
 
-    // operator* — скалярний добуток двох векторів
-    double operator*(const Vector2D& v) const
-    {
-        return x * v.x + y * v.y;
+    // Віднімання числа від суми
+    Money operator-(double val) const {
+        if (amount - val < 0) throw invalid_argument("Result would be negative");
+        return Money(amount - val, currency, rate);
     }
 
-    // operator<< — виведення на консоль
-    friend ostream& operator<<(ostream& out, const Vector2D& v)
-    {
-        out << "(" << v.x << ", " << v.y << ")";
+    // Число + грошова сума (дружня)
+    friend Money operator+(double val, const Money& m) {
+        return m + val;
+    }
+
+    // Виведення на консоль
+    friend ostream& operator<<(ostream& out, const Money& m) {
+        out << m.amount << " " << m.currency
+            << " (rate: 1 USD = " << m.rate << " " << m.currency << ")";
         return out;
     }
 
-    // operator>> — введення з консолі
-    friend istream& operator>>(istream& in, Vector2D& v)
-    {
-        in >> v.x >> v.y;
+    // Введення з консолі
+    friend istream& operator>>(istream& in, Money& m) {
+        double a, r; string c;
+        in >> a >> c >> r;
+        if (a < 0) throw invalid_argument("Amount cannot be negative");
+        if (r <= 0) throw invalid_argument("Rate must be positive");
+        m.amount = a; m.currency = c; m.rate = r;
         return in;
-    }
-
-    // число * вектор (глобальна дружня функція)
-    friend Vector2D operator*(double k, const Vector2D& v)
-    {
-        return Vector2D(k * v.x, k * v.y);
     }
 };
 
-int main()
-{
+int main() {
     // Конструктор за замовчуванням
-    Vector2D v1;
-    cout << "v1 (default): " << v1 << endl;
+    Money m1;
+    cout << "m1 (default): " << m1 << endl;
 
-    // Ініціалізуючий конструктор
-    Vector2D v2(3.0, 4.0);
-    cout << "v2 (3, 4): " << v2 << endl;
+    // Параметричний конструктор
+    Money m2(1000.0, "UAH", 41.5);
+    cout << "m2 (1000 UAH): " << m2 << endl;
+
+    Money m3(50.0, "USD", 1.0);
+    cout << "m3 (50 USD):   " << m3 << endl;
 
     // Копіюючий конструктор
-    Vector2D v3(v2);
-    cout << "v3 (copy of v2): " << v3 << endl;
+    Money m4(m2);
+    cout << "m4 (copy m2):  " << m4 << endl;
+
+    // Конструктор переміщення
+    Money m5(Money(200.0, "EUR", 1.08));
+    cout << "m5 (moved EUR):" << m5 << endl;
 
     // operator=
-    Vector2D v4;
-    v4 = v2;
-    cout << "v4 (assigned v2): " << v4 << endl;
+    Money m6; m6 = m3;
+    cout << "m6 (= m3):     " << m6 << endl;
 
     // operator[]
-    cout << "\nv2[0] = x: " << v2[0] << endl;
-    cout << "v2[1] = y: " << v2[1] << endl;
+    cout << "\nm2[0] amount: " << m2[0] << endl;
+    cout << "m2[1] rate:   " << m2[1] << endl;
 
-    // operator() — модуль
-    cout << "\nv2 length via (): " << v2() << endl;
+    // operator() — сума в доларах
+    cout << "m2 in USD via (): " << m2() << endl;
 
-    // operator double — перетворення типу
-    double len = (double)v2;
-    cout << "v2 length via cast: " << len << endl;
+    // Перетворення типу double
+    double usd = (double)m2;
+    cout << "m2 in USD cast:   " << usd << endl;
 
     // operator== та !=
-    cout << "\nv2 == v3: " << (v2 == v3 ? "true" : "false") << endl;
-    cout << "v1 == v2: " << (v1 == v2 ? "true" : "false") << endl;
-    cout << "v1 != v2: " << (v1 != v2 ? "true" : "false") << endl;
+    cout << "\nm2 == m4: " << (m2 == m4 ? "true" : "false") << endl;
+    cout << "m2 != m3: " << (m2 != m3 ? "true" : "false") << endl;
 
-    // operator+ — додавання
-    Vector2D v5(1.0, 2.0);
-    Vector2D v6 = v2 + v5;
-    cout << "\nv2 + v5: " << v6 << endl;
+    // operator< та >
+    cout << "m2 < m3:  " << (m2 < m3  ? "true" : "false") << endl;
+    cout << "m3 > m2:  " << (m3 > m2  ? "true" : "false") << endl;
 
-    // operator- — віднімання
-    Vector2D v7 = v2 - v5;
-    cout << "v2 - v5: " << v7 << endl;
+    // Додавання двох сум
+    Money sum = m2 + m3;
+    cout << "\nm2 + m3: " << sum << endl;
 
-    // operator* вектор на число
-    Vector2D v8 = v2 * 2.0;
-    cout << "v2 * 2.0: " << v8 << endl;
+    // Різниця двох сум
+    Money diff = m3 - Money(10.0, "USD", 1.0);
+    cout << "m3 - 10USD: " << diff << endl;
 
-    // число * вектор
-    Vector2D v9 = 3.0 * v2;
-    cout << "3.0 * v2: " << v9 << endl;
-
-    // скалярний добуток
-    double dot = v2 * v5;
-    cout << "\nv2 * v5 (dot): " << dot << endl;
+    // Додавання/віднімання числа
+    cout << "m2 + 500: " << (m2 + 500.0) << endl;
+    cout << "m2 - 200: " << (m2 - 200.0) << endl;
 
     // operator>>
-    cout << "\nEnter vector (x y): ";
-    Vector2D v10;
-    cin >> v10;
-    cout << "You entered: " << v10 << endl;
-    cout << "Its length: " << v10() << endl;
+    cout << "\nEnter money (amount currency rate): ";
+    Money m7; cin >> m7;
+    cout << "You entered: " << m7 << endl;
+    cout << "In USD: " << m7() << endl;
 
     return 0;
 }
